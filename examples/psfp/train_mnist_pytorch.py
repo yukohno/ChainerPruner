@@ -6,6 +6,14 @@
 # https://github.com/pytorch/examples/blob/master/mnist/main.py
 
 from __future__ import print_function
+
+# import sys
+# import pprint
+# pprint.pprint(sys.path)
+# sys.path.append("/home/yu.kono/ChainerPruner")
+# sys.path.append('../../')
+# pprint.pprint(sys.path)
+
 import logging
 import argparse
 import torch
@@ -136,8 +144,8 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     # initialize pruning extension
-    target_layers = ['net.0']
-    x = torch.randn((1, 1, 28, 28), requires_grad=False)
+    target_layers = ['net.0', 'net.3']
+    x = torch.randn((1, 1, 28, 28), requires_grad=False).to(device)
     psfp = ProgressiveSoftFilterPruning(model, x, target_layers, pruning_rate=args.pruning_percent,
                                         stop_trigger=args.epochs)
 
@@ -145,6 +153,7 @@ def main():
         train(args, model, device, train_loader, optimizer, epoch, psfp)
         test(args, model, device, test_loader)
 
+    model = model.to("cpu")
     if (args.save_model):
         torch.onnx.export(model, x, "mnist_cnn.onnx", verbose=False,
                           input_names=['input'],

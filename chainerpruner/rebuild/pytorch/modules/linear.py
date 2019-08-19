@@ -1,6 +1,6 @@
 # Copyright (c) 2018 DeNA Co., Ltd.
 # Licensed under The MIT License [see LICENSE for details]
-
+import torch
 import torch.nn as nn
 
 from chainerpruner.rebuild.rebuildlink import RebuildLink
@@ -12,20 +12,25 @@ class RebuildLinear(RebuildLink):
     def passive_rebuild(self, linear, mask):
         # conv-linearだと影響を受ける
 
-        self.logger.debug(log_shape(linear.W.array, mask))
+        # self.logger.debug(log_shape(linear.W.array, mask))
+        self.logger.debug(log_shape(linear.weight, mask))
 
         input_shape = self.node.input_shape[0]
         if len(input_shape) == 4 and input_shape[1] == len(mask):
             # prev node is conv: conv-fc
-            n_out, n_in = linear.W.shape
-            w = linear.W.array.copy().reshape(n_out, *input_shape[1:])
+            # n_out, n_in = linear.W.shape
+            n_out, n_in = linear.weight.shape
+            # w = linear.W.array.copy().reshape(n_out, *input_shape[1:])
+            w = linear.weight.copy().reshape(n_out, *input_shape[1:])
             w = w[:, mask, :, :]
             w = w.reshape(n_out, -1)
         else:
             # conv-gap-fc
-            w = linear.W.array[:, mask].copy()
+            # w = linear.W.array[:, mask].copy()
+            w = (linear.weight)[:, mask].copy()
 
-        linear.W.array = w
+        # linear.W.array = w
+        linear.weight = w
 
     def reinitialize(self, link: nn.Linear):
         # _, in_size = link.W.shape

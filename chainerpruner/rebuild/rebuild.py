@@ -49,6 +49,8 @@ def rebuild(model, graph, target_layers, mapping=None):
 
     model_dict = {name: link for name, link in chainerpruner.utils.named_modules(model)}
     info = []
+    print()
+    print([print('name:{}: {}'.format(_name, _layer)) for _name, _layer in model_dict.items()])
 
     nodes = {node.name: node for node in graph.graph.nodes}
 
@@ -58,6 +60,8 @@ def rebuild(model, graph, target_layers, mapping=None):
         if name not in target_layers:
             continue
         logger.debug('(active)%s: %s', name, post_names)
+        print('name:', name)
+        print(post_names)
 
         # rebuild pruning target node
         target_link = model_dict[name]
@@ -79,6 +83,7 @@ def rebuild(model, graph, target_layers, mapping=None):
 
         # later node rebuild (input channels)
         for post_name in post_names:
+            print(post_name)
             logger.debug('(passive)%s:', post_name)
             if post_name in pruned:
                 continue
@@ -97,7 +102,7 @@ def rebuild(model, graph, target_layers, mapping=None):
             if rebuild_link_class is None:
                 # ResBlockなどUserDefinedLinkを含む場合があるのでskip
                 continue
-
+            print('    hit!')
             rebuild_link = rebuild_link_class()
             rebuild_link.node = nodes[post_name]
             rebuild_link.apply_passive_rebuild(target_link, mask)
